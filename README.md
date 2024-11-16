@@ -16,16 +16,17 @@ import SHELF
 
 
 
+@main
 struct App: SwiftUI.App {
     
-    @ShelfModel
-    private var shelfModel
+    @ShelfContext
+    private var shelfContext
     
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.shelfModel, shelfModel)
+                .environment(\.shelfContext, shelfContext)
         }
     }
 }
@@ -36,8 +37,8 @@ struct ContentView: View {
     @ShelfQuery
     private var user: User
     
-    @Environment(\.shelfModel)
-    private var shelfModel
+    @Environment(\.shelfContext)
+    private var shelfContext
     
     var body: some View {
         VStack {
@@ -47,7 +48,7 @@ struct ContentView: View {
             TextField("Change my name", value: $user.name)
             
             Button("Forget me!") {
-                shelfModel.delete(user)
+                shelfContext.delete(user)
             }
         }
     }

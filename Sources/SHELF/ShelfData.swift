@@ -1,7 +1,7 @@
 //
 // ShelfData.swift
 //
-// Written by Ky on 2024-11-13.
+// Written by Ky on 2024-11-14.
 // Copyright waived. No rights reserved.
 //
 // This file is part of SHELF, distributed under the Free License.
@@ -25,5 +25,25 @@ public protocol ShelfData: Codable {
     ///
     /// This is required so SHELF can create placeholders for new data before the user interacts with it
     init(id: UUID)
+    
+    
+    /// Changes this data based on the given new data.
+    ///
+    /// This function is optional, and the default implementation simply assigns `self = newValue`.
+    /// Write your own version if you need special behavior (e.g. you're using reference types, so simple assignment won't do).
+    ///
+    /// The new data probably came from some update to the object store, or from user input or similar.
+    /// It's best to handle it with care. Include sanitization steps as you see fit.
+    ///
+    /// - Parameter newValue: The entire new value. Update this data based on that new value
+    mutating func update(to newValue: Self)
 }
 
+
+
+public extension ShelfData {
+    @inlinable
+    mutating func update(to newValue: Self) {
+        self = newValue
+    }
+}
