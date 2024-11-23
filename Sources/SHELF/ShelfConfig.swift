@@ -22,19 +22,19 @@ import UuidTools
 public struct ShelfConfig: ShelfData, Sendable {
     
     /// This configuration's ID
-    public var id: UUID
+    public var id: ShelfId
     
     /// Where the object store lives
     public var storageLocation: StorageLocation
     
     
-    public init(id: UUID) {
+    public init(id: ShelfId) {
         self.init(
             id: id,
-            storageLocation: .onlyInMemory)
+            storageLocation: .defaultOnDrive)
     }
     
-    init(id: UUID, storageLocation: StorageLocation) {
+    public init(id: ShelfId, storageLocation: StorageLocation) {
         self.id = id
         self.storageLocation = storageLocation
     }
@@ -57,7 +57,7 @@ public extension ShelfConfig {
     /// You can specify one if you want to, but if you don't, it'll always be this.
     ///
     /// This isn't a specific magical or special UUID or anthing like that; We literally generated it while writing this file.
-    static let defaultId = UUID(uuid: (0x45,0xF2,0x3C,0x5F, 0x24,0x68, 0x46,0x4D, 0x97,0x6F, 0x4C,0x1D,0xD2,0x0D,0xEB,0x19))
+    static let defaultId = ShelfId(rawValue: UUID(uuid: (0x45,0xF2,0x3C,0x5F, 0x24,0x68, 0x46,0x4D, 0x97,0x6F, 0x4C,0x1D,0xD2,0x0D,0xEB,0x19)))
 }
 
 
@@ -76,7 +76,13 @@ public extension ShelfConfig {
         /// This location is what most people might expect: SHELF will read data from an object-storage database persisted to the drive, and all changes will be written to it.
         ///
         /// - Parameter directory: A local file url (`file:///Path/to/store/`) pointing to the directory where the object store is persisted
-        case local(directory: URL)
+        case local(DriveLocation)
+        
+        
+        /// The default on-drive location for the object store.
+        ///
+        /// This is what most applications should use by default in production, and is what fills documentation
+        static var defaultOnDrive: Self { .local(.defaultObjectStoreDirectory) }
     }
 }
 
@@ -115,7 +121,7 @@ public extension ShelfConfig {
 
 private extension ShelfConfig.NewConfigParadigm {
     /// A UUID appropriate for this paradigm
-    var id: UUID {
+    var id: ShelfId {
         switch self {
         case .goldenPath,
                 .devNeverExplicitlySetContext:
@@ -127,7 +133,7 @@ private extension ShelfConfig.NewConfigParadigm {
     /// The storage location that this paradigm prescribes
     var storageLocation: ShelfConfig.StorageLocation {
         switch self {
-        case .goldenPath:                  .local(directory: .defaultObjectStoreDirectory)
+        case .goldenPath:                   .local(.defaultObjectStoreDirectory)
         case .devNeverExplicitlySetContext: .onlyInMemory
         }
     }

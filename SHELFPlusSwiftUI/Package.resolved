@@ -1,0 +1,50 @@
+{
+  "originHash" : "f0be75d01461841ccf4108372593efd9734869e4855224231a1a188dc0bf86cd",
+  "pins" : [
+    {
+      "identity" : "opengraph",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/OpenSwiftUIProject/OpenGraph",
+      "state" : {
+        "branch" : "main",
+        "revision" : "074491f9950c7692142630b08b7c87b8cb682e28"
+      }
+    },
+    {
+      "identity" : "openswiftui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/OpenSwiftUIProject/OpenSwiftUI.git",
+      "state" : {
+        "revision" : "bbcd8bef2ca031103ad6c23805d5245d13c6ea8e"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "41982a3656a71c768319979febd796c6fd111d5c",
+        "version" : "1.5.0"
+      }
+    },
+    {
+      "identity" : "swift-safe-pointer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Safe-Pointer.git",
+      "state" : {
+        "revision" : "a71a39d19275d90e13f362c3d23163dc41318d85",
+        "version" : "2.1.3"
+      }
+    },
+    {
+      "identity" : "uuidtools",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/UuidTools.git",
+      "state" : {
+        "revision" : "dbd634bbdda3e2b3b428eb6580f6244585b99652",
+        "version" : "0.2.1"
+      }
+    }
+  ],
+  "version" : 3
+}

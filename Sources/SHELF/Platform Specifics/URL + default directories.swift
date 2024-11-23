@@ -12,11 +12,6 @@ import Foundation
 
 
 
-/// This is the name of the subdirectory where the object store is located
-private let objectStoreDefaultDirectoryName = "Object Store"
-
-
-
 internal extension URL {
     
     /// A silly little way to get the current platform's directories
@@ -31,6 +26,22 @@ internal extension URL {
     static var defaultObjectStoreDirectory: Self {
         defaultDirectories(for: .current).thisProgramObjectStore
     }
+    
+    
+    /// Resolves the given semantic directory as a URL
+    ///
+    /// - Parameter semanticDirectory: Describes a way a directory is used. That description will be transformed into a concrete location where that use-case is best saved on this platform
+    init(_ semanticDirectory: DriveLocation.Semantic) {
+        switch semanticDirectory {
+        case .thisProgramDataDirectory:
+            self = URL.defaultDirectories(for: .current).thisProgramDataDirectory
+        }
+    }
+    
+    
+    /// This is the name of the subdirectory where the object store is located
+    @inlinable
+    static var objectStoreDefaultDirectoryName: String { ".objectStore" }
 }
 
 
@@ -52,8 +63,23 @@ internal protocol PlatformDefaultDirectories {
 
 
 internal extension PlatformDefaultDirectories where Self == CurrentPlatformDefaultDirectories {
+    
     /// The default directories for the current platform
     static var current: Self { .init() }
+}
+
+
+
+internal extension PlatformDefaultDirectories {
+    
+    var thisProgramObjectStore: URL {
+        if #available(macOS 13.0, *) {
+            thisProgramDataDirectory.appending(path: URL.objectStoreDefaultDirectoryName)
+        }
+        else {
+            thisProgramDataDirectory.appendingPathComponent(URL.objectStoreDefaultDirectoryName)
+        }
+    }
 }
 
 
@@ -79,16 +105,6 @@ internal struct AppleDefaultDirectories: PlatformDefaultDirectories {
             catch {
                 return .init(fileURLWithPath: "\(NSHomeDirectory())/Library/Application Support/\(bundleId)")
             }
-        }
-    }
-    
-    
-    var thisProgramObjectStore: URL {
-        if #available(macOS 13.0, *) {
-            thisProgramDataDirectory.appending(path: objectStoreDefaultDirectoryName)
-        }
-        else {
-            thisProgramDataDirectory.appendingPathComponent(objectStoreDefaultDirectoryName)
         }
     }
 }

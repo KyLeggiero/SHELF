@@ -18,13 +18,13 @@ public protocol ShelfData: Codable {
     /// The identifier for this data.
     ///
     /// This must be universally-unique; SHELF is an object-storage framework so all objects are equal in its eyes
-    var id: UUID { get }
+    var id: ShelfId { get }
     
     
     /// Creates a new one!
     ///
     /// This is required so SHELF can create placeholders for new data before the user interacts with it
-    init(id: UUID)
+    init(id: ShelfId)
     
     
     /// Changes this data based on the given new data.

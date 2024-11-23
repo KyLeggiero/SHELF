@@ -70,6 +70,7 @@ public extension ShelfContext {
 
 
 
+/// A protocol backing ``ShelfContext``, to ensure that the public API and the guts both do the same thing
 public protocol __ShelfContextProtocol: Sendable {
     
     /// This context's configuration

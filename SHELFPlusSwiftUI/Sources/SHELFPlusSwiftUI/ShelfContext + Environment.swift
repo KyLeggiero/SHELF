@@ -8,7 +8,6 @@
 // For full terms, see the included LICENSE file.
 //
 
-#if canImport(SwiftUI)
 import SwiftUI
 
 
@@ -42,7 +41,3 @@ public extension EnvironmentValues {
         set { self[ShelfContext.Key.self] = newValue }
     }
 }
-
-
-
-#endif

@@ -3,35 +3,40 @@
 
 import PackageDescription
 
+
+
 let package = Package(
     name: "SHELF",
     
     platforms: [
-        .macOS(.v13),
-        .iOS(.v16),
-        .tvOS(.v16),
+        .macOS(.v15),//.macOS(.v13),
+        .iOS(.v18),//.iOS(.v16),
+        .tvOS(.v18),//.tvOS(.v16),
     ],
     
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "SHELF",
             targets: ["SHELF"]),
     ],
     
     dependencies: [
-        .package(url: "https://github.com/RougeWare/UuidTools.git", from: "0.2.1"),
         .package(url: "https://github.com/RougeWare/Swift-Safe-Pointer.git", from: "2.1.3"),
+        .package(url: "https://github.com/RougeWare/Swift-SerializationTools.git", from: "1.1.1"),
+        .package(url: "https://github.com/RougeWare/Swift-String-Integer-Access.git", from: "2.1.0"),
+        .package(url: "https://github.com/RougeWare/Swift-TODO.git", from: "1.1.0"),
+        .package(url: "https://github.com/RougeWare/UuidTools.git", from: "0.2.1"),
     ],
     
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SHELF",
             dependencies: [
-                .product(name: "UuidTools", package: "UuidTools"),
                 .product(name: "SafePointer", package: "Swift-Safe-Pointer"),
+                .product(name: "SerializationTools", package: "Swift-SerializationTools"),
+                .product(name: "SafeStringIntegerAccess", package: "Swift-String-Integer-Access"),
+                .product(name: "TODO", package: "Swift-TODO"),
+                .product(name: "UuidTools", package: "UuidTools"),
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
