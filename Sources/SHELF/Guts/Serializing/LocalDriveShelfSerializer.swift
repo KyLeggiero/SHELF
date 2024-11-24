@@ -50,7 +50,7 @@ extension LocalDriveShelfSerializer: ShelfSerializer {
     }
     
     
-    func __write(rawObjectData: Data, withId id: ShelfId) async throws(Shelf.WriteError) {
+    mutating func __write(rawObjectData: Data, withId id: ShelfId) async throws(Shelf.WriteError) {
         // TODO: Batch into queued transactions
         
         let objectFileUrl = objectUrl(for: id)
@@ -61,6 +61,36 @@ extension LocalDriveShelfSerializer: ShelfSerializer {
         }
         catch {
             throw .couldNotWriteObjectFile(cause: error)
+        }
+    }
+    
+    
+    mutating func __update(objectWithId id: ShelfId, newRawData: Data) async throws(Shelf.WriteError) {
+        try await __write(rawObjectData: newRawData, withId: id)
+    }
+    
+    
+    mutating func delete(objectWithId id: ShelfId) async throws(Shelf.WriteError) {
+        // TODO: Batch into queued transactions
+        
+        let objectFileUrl = objectUrl(for: id)
+        
+        do {
+            try fileManager.removeItem(at: objectFileUrl)
+        }
+        catch {
+            throw .couldNotWriteObjectFile(cause: error)
+        }
+    }
+    
+    
+    
+    func __deleteAllData() throws(Shelf.WholeDatabaseDeleteError) {
+        do {
+            try fileManager.removeItem(at: resolvedLocation)
+        }
+        catch {
+            throw .couldNotPerformApprovedDeletion(cause: error)
         }
     }
 }

@@ -41,7 +41,7 @@ internal extension URL {
     
     /// This is the name of the subdirectory where the object store is located
     @inlinable
-    static var objectStoreDefaultDirectoryName: String { ".objectStore" }
+    static var objectStoreDefaultDirectoryName: String { ".object store" }
 }
 
 

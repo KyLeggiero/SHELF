@@ -9,25 +9,7 @@
 //
 
 import Foundation
-
 import SHELF
-
-
-
-struct SimpleObject: ShelfData, Equatable {
-    let id: ShelfId
-    var name: String?
-    
-    init(id: ShelfId) {
-        self.id = id
-        self.name = nil
-    }
-    
-    init(id: ShelfId = .init(), name: String) {
-        self.id = id
-        self.name = name
-    }
-}
 
 
 
@@ -45,7 +27,7 @@ let difficultStrings = [
 
 
 extension DriveLocation {
-    static func newTestLocation() -> Self {
-        .explicit(path: NSTemporaryDirectory() + "/SHELF Tests/\(UUID())/.objectStore/") // URL.objectStoreDefaultDirectoryName
+    static func newTestLocation(named name: String = UUID().uuidString) -> Self {
+        .explicit(path: NSTemporaryDirectory() + "/SHELF Tests/\(name)/.object store/") // URL.objectStoreDefaultDirectoryName
     }
 }

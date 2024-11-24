@@ -20,7 +20,7 @@ public struct Shelf {
     /// Configuration details for this SHELF store
     let config: ShelfConfig
     
-    private let serializer: ShelfSerializer
+    private var serializer: ShelfSerializer
 }
 
 
@@ -80,7 +80,7 @@ public extension Shelf {
     ///
     /// - Parameter object: The object to save
     /// - Throws: A ``WriteError`` if any error occurs while attempting to write the object to the store
-    func save<Object: ShelfData>(_ object: Object) async throws(WriteError) {
+    mutating func save<Object: ShelfData>(_ object: Object) async throws(WriteError) {
         try await serializer.write(object: object)
     }
 }
@@ -99,5 +99,55 @@ public extension Shelf {
         /// The in-memory representation of the object could not be converted into the raw data that would be written to the store
         /// - Parameter cause: The OS-given reason why the object could not be serialized
         case couldNotSerializeObject(cause: Error)
+    }
+}
+
+
+
+public extension Shelf {
+    enum WholeDatabaseDeleteError: Error {
+        case badDeleteToken
+        case couldNotPerformApprovedDeletion(cause: Error)
+    }
+}
+
+
+
+// MARK: - Deleting
+
+
+
+// MARK: - Nuking
+
+public extension Shelf {
+    /// 🛑 Deletes all the data in this SHELF object store database.
+    ///
+    /// This function returns a token for database deletion.
+    /// You must then call `imSure(oath:)` on that token, and pass it the following oath as a static string in your source code file:
+    /// ```
+    /// I understand that this action will permanently delete all data in this SHELF database.
+    /// This cannot be undone once I pass this token back.
+    /// I vow that this decision is the most correct for this situation, and there is no better choice I could make in this moment.
+    ///
+    /// Black sphinx of quartz, judge my vow.
+    /// ```
+    ///
+    /// After you've given your oath to the token, pass the token back to `nuke_whole_database_DANGEROUS(token:)` within 60 seconds.
+    ///
+    /// If you've properly created the token with this function, said the oath to the token, and passed the token back within 60 seconds, then the database will be deleted.
+    ///
+    /// - Attention: If you do not complete this ritual perfectly the first time, a `.fault`-level message will be logged describing the reason the ritual failed
+    @MainActor
+    mutating func nuke_whole_database_DANGEROUS() throws(WholeDatabaseDeleteError) -> WholeDatabaseDeletionConfirmationToken {
+        try serializer.delete_all_data__DANGEROUS__()
+    }
+    
+    
+    /// 🛑 Deletes all the data in this SHELF object store database.
+    ///
+    /// See the documentation for `delete_all_data__DANGEROUS__()` to understand how this function works.
+    @MainActor
+    mutating func nuke_whole_database_DANGEROUS(token: WholeDatabaseDeletionConfirmationToken) throws(WholeDatabaseDeleteError) {
+        try serializer.delete_all_data__DANGEROUS__(token: token)
     }
 }

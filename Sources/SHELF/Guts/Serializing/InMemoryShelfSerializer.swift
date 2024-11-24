@@ -23,7 +23,34 @@ internal final actor InMemoryShelfSerializer: ShelfSerializer {
         return inMemoryStore[id]
     }
     
+    
     func __write(rawObjectData: Data, withId id: ShelfId) async throws(Shelf.WriteError) {
         inMemoryStore[id] = rawObjectData
+    }
+    
+    
+    func __update(objectWithId id: ShelfId, newRawData: Data) async throws(Shelf.WriteError) {
+        try await __write(rawObjectData: newRawData, withId: id)
+    }
+    
+    
+    func delete(objectWithId id: ShelfId) async throws(Shelf.WriteError) {
+        inMemoryStore[id] = nil
+    }
+    
+    
+    @MainActor
+    func __deleteAllData() throws(Shelf.WholeDatabaseDeleteError) {
+        Task {
+            await nuke()
+        }
+    }
+}
+
+
+
+private extension InMemoryShelfSerializer {
+    func nuke() {
+        inMemoryStore = [:]
     }
 }
