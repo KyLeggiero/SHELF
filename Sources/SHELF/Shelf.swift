@@ -115,6 +115,32 @@ public extension Shelf {
 
 // MARK: - Deleting
 
+public extension Shelf {
+    
+    /// Attempts to delete the a SHELF object from the store with the given ID.
+    ///
+    /// - Parameters:
+    ///   - id: The ID of the object to delete
+    ///
+    /// - Throws: A ``DeleteError`` if any error occurs while attempting to delete the object from the store
+    mutating func delete(objectWithId staleId: ShelfId) async throws(DeleteError) {
+        try await serializer.delete(objectWithId: staleId)
+    }
+}
+
+
+
+public extension Shelf {
+    
+    /// An error which might occur while attempting to delete an object from the object store
+    enum DeleteError: Error {
+        
+        /// The object's file was successfully found in the database, but that object file could not be deleted
+        /// - Parameter cause: The OS-given reason why the file could not be deleted
+        case couldNotDeleteObjectFile(cause: Error)
+    }
+}
+
 
 
 // MARK: - Nuking

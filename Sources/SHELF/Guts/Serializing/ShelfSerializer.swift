@@ -49,7 +49,13 @@ internal protocol ShelfSerializer {
     mutating func __update(objectWithId id: ShelfId, newRawData: Data) async throws(Shelf.WriteError)
     
     
-    mutating func delete(objectWithId id: ShelfId) async throws(Shelf.WriteError)
+    /// Attempts to delete the a SHELF object from the store with the given ID.
+    ///
+    /// - Parameters:
+    ///   - id: The ID of the object to delete
+    ///
+    /// - Throws: A ``DeleteError`` if any error occurs while attempting to delete the object from the store
+    mutating func delete(objectWithId id: ShelfId) async throws(Shelf.DeleteError)
     
     
     /// Attempts to delete the entire object store database.
@@ -138,7 +144,7 @@ internal extension ShelfSerializer {
     @MainActor
     mutating func delete_all_data__DANGEROUS__() throws(Shelf.WholeDatabaseDeleteError) -> WholeDatabaseDeletionConfirmationToken {
         let token = WholeDatabaseDeletionConfirmationToken()
-        deleteConfirmationTokens.insert(token)
+        wholeDatabaseDeleteConfirmationTokens.insert(token)
         return token
     }
     
@@ -148,10 +154,10 @@ internal extension ShelfSerializer {
     /// See the documentation for `delete_all_data__DANGEROUS__()` to understand how this function works.
     @MainActor
     mutating func delete_all_data__DANGEROUS__(token: WholeDatabaseDeletionConfirmationToken) throws(Shelf.WholeDatabaseDeleteError) {
-        defer { deleteConfirmationTokens = [] }
+        defer { wholeDatabaseDeleteConfirmationTokens = [] }
         
         // Ensure that the token was created by `delete_all_data__DANGEROUS__()`
-        guard deleteConfirmationTokens.contains(token) else {
+        guard wholeDatabaseDeleteConfirmationTokens.contains(token) else {
             Logger().log(level: .fault, "Dev attempted to delete all data in a SHELF store without using a valid delete token.")
             throw .badDeleteToken
         }
@@ -205,4 +211,4 @@ public struct WholeDatabaseDeletionConfirmationToken: Hashable {
 
 
 @MainActor
-private var deleteConfirmationTokens: Set<WholeDatabaseDeletionConfirmationToken> = []
+private var wholeDatabaseDeleteConfirmationTokens: Set<WholeDatabaseDeletionConfirmationToken> = []

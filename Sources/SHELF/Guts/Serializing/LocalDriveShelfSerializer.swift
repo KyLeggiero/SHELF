@@ -70,7 +70,7 @@ extension LocalDriveShelfSerializer: ShelfSerializer {
     }
     
     
-    mutating func delete(objectWithId id: ShelfId) async throws(Shelf.WriteError) {
+    mutating func delete(objectWithId id: ShelfId) async throws(Shelf.DeleteError) {
         // TODO: Batch into queued transactions
         
         let objectFileUrl = objectUrl(for: id)
@@ -79,7 +79,7 @@ extension LocalDriveShelfSerializer: ShelfSerializer {
             try fileManager.removeItem(at: objectFileUrl)
         }
         catch {
-            throw .couldNotWriteObjectFile(cause: error)
+            throw .couldNotDeleteObjectFile(cause: error)
         }
     }
     

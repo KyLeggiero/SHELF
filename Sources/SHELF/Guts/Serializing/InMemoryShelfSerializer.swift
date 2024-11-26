@@ -34,7 +34,7 @@ internal final actor InMemoryShelfSerializer: ShelfSerializer {
     }
     
     
-    func delete(objectWithId id: ShelfId) async throws(Shelf.WriteError) {
+    func delete(objectWithId id: ShelfId) async throws(Shelf.DeleteError) {
         inMemoryStore[id] = nil
     }
     
