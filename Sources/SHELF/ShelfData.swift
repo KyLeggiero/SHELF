@@ -21,12 +21,6 @@ public protocol ShelfData: Codable {
     var id: ShelfId { get }
     
     
-//    /// Creates a new one!
-//    ///
-//    /// This is required so SHELF can create placeholders for new data before the user interacts with it
-//    init(id: ShelfId)
-    
-    
     /// Changes this data based on the given new data.
     ///
     /// This function is optional, and the default implementation simply assigns `self = newValue`.

@@ -19,24 +19,16 @@ import UuidTools
 /// Use this when you need to tweak the behvior of SHELF
 ///
 /// - SeeAlso: ``ShelfContext``
-public struct ShelfConfig: ShelfData, Sendable {
-    
-    /// This configuration's ID
-    public var id: ShelfId
+public struct ShelfConfig: Sendable, Codable {
     
     /// Where the object store lives
     public var storageLocation: StorageLocation
     
-    
-    public init(id: ShelfId) {
-        self.init(
-            id: id,
-            storageLocation: .defaultOnDrive)
-    }
-    
-    public init(id: ShelfId, storageLocation: StorageLocation) {
-        self.id = id
-        self.storageLocation = storageLocation
+    /// Initialize a config
+    /// - Parameter storageLocation: _optional_ - Where you want the SHELF object store database to be located.
+    ///                              If omitted, a reasonable default is used. Future implementations might take omission to mean "automatically detect"
+    public init(storageLocation: StorageLocation? = nil) {
+        self.storageLocation = storageLocation ?? .defaultOnDrive
     }
 }
 
@@ -100,7 +92,6 @@ public extension ShelfConfig {
     /// - Parameter paradigm: The semantic paradigm describing the reason you want to create a new SHELF config.
     init(paradigm: NewConfigParadigm) {
         self.init(
-            id: paradigm.id,
             storageLocation: paradigm.storageLocation
         )
     }
@@ -133,9 +124,82 @@ private extension ShelfConfig.NewConfigParadigm {
     /// The storage location that this paradigm prescribes
     var storageLocation: ShelfConfig.StorageLocation {
         switch self {
-        case .goldenPath:                   .local(.defaultObjectStoreDirectory)
+        case .goldenPath:                   .defaultOnDrive
         case .devNeverExplicitlySetContext: .onlyInMemory
         }
     }
 }
 
+
+
+internal extension ShelfConfig.NewConfigParadigm {
+    
+    /// Whether this paradigm aligns with preferring to load pre-existing configurations
+    var preferLoadingPastConfig: Bool {
+        switch self {
+        case .goldenPath:                   true
+        case .devNeverExplicitlySetContext: false
+        }
+    }
+}
+
+
+
+// MARK: - Loading
+
+internal extension ShelfConfig {
+    
+    /// Attempts to load the existing config at the given location.
+    ///
+    /// Of course, the given location must point to the whole SHELF database, not just the one config file within it. After all, the point of this function is to find the config in a given database.
+    ///
+    /// - Parameter storageLocation: Where to expect a SHELF object store, to load the config from
+    ///
+    /// - Parameters:
+    ///   - storageLocation: Where to expect a SHELF object store, to load the config from
+    ///                      This shouldn't be a SHELF store itself, but instead _contain_ the SHELF store as a subdirectory.
+    ///                      For example, if the SHELF store is at `~/Library/Application Support/MyCoolApp/.object store`, then this would be `~/Application Support/MyCoolApp/`
+    ///   - storeName:       _optional_ - The name of the SHELF store's root directory. Not all locations support this (e.g. only-in-memory doesn't name its store)
+    ///                      Omit to use the default store root dir name.
+    ///                      For example, if the SHELF store is at `~/Library/Application Support/MyCoolApp/.object store`, then   this would be `.object store`
+    ///   - configName:      _optional_ - The name of the SHELF store's config file. Not all locations support this (e.g. only-in-memory doesn't name its config)
+    ///                      Omit to use the default config file name.
+    ///                      For example, if the SHELF store's config is at `~/Library/Application Support/MyCoolApp/.object   store/.shelf config`, then this would be `.shelf config`
+    ///
+    /// - Throws: A ``ShelfConfig/LoadError`` iff any issue occurs loading the config
+    ///
+    /// - Returns: The config found at the given location, or `nil` if no such config exists
+    init?(loadingFrom storageLocation: StorageLocation,
+          storeName: String? = nil,
+          configName: String? = nil)
+    async throws(LoadError) {
+        switch storageLocation {
+        case .local(let driveLocation):
+            guard let loaded = try await LocalDriveShelfSerializer.config(at: driveLocation,
+                                                                          storeName: storeName,
+                                                                          configName: configName)
+            else {
+                return nil
+            }
+            
+            self = loaded
+            
+        case .onlyInMemory:
+            return nil
+        }
+    }
+    
+    
+    
+    enum LoadError: Error {
+        
+        /// The config file definitely exists, but it isn't readable
+        case unreadable(cause: any Error)
+        
+        /// The config file exists and we could read its content, but couldn't parse its content into a ``ShelfConfig``.
+        ///
+        /// This is most likely a migration bug, where the content is missing something this version expects, ence the name `incompatible`.
+        /// However, this can also be due to bitrot and other corruptions, or a user manually editing it, or many other things that can affect a file's content.
+        case incompatible(cause: any Error)
+    }
+}

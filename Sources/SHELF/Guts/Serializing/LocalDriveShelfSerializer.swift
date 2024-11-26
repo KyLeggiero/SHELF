@@ -14,7 +14,11 @@ import Foundation
 
 /// The star of the show, humbly working the magic from the booth behind the scenes. This handles persisting/retrieving objects to/from the store on the machine's local drive
 internal struct LocalDriveShelfSerializer {
+    
+    /// File URL to the actual location of the object store that this (de)serializes
     private let resolvedLocation: URL
+    
+    /// Use this file manager when performing FileManager operations in this file
     private let fileManager: FileManager
 }
 
@@ -109,7 +113,59 @@ private extension LocalDriveShelfSerializer {
         let strings = id.shelfStrings
         
         return resolvedLocation
-            .appending(components: strings.topFolderName, strings.subFolderName)
-            .appending(component: strings.objectName)
+            .appending(components: strings.topFolderName, strings.subFolderName, directoryHint: .isDirectory)
+            .appending(component: strings.objectName, directoryHint: .notDirectory)
+    }
+}
+
+
+
+// MARK: - Config persistence
+
+internal extension LocalDriveShelfSerializer {
+    
+    /// Deserializes the SHELF config file at the given location
+    /// 
+    /// - Parameters:
+    ///   - driveLocation: The location on the drive which contains the SHELF store directory.
+    ///                    This shouldn't be a SHELF store itself, but instead _contain_ the SHELF store as a subdirectory.
+    ///                    For example, if the SHELF store is at `~/Library/Application Support/MyCoolApp/.object store`, then this would be `~/Application Support/MyCoolApp/`
+    ///   - storeName:     _optional_ - The name of the SHELF store's root directory.
+    ///                    Omit to use the default store root dir name.
+    ///                    For example, if the SHELF store is at `~/Library/Application Support/MyCoolApp/.object store`, then this would be `.object store`
+    ///   - configName:    _optional_ - The name of the SHELF store's config file.
+    ///                    Omit to use the default config file name.
+    ///                    For example, if the SHELF store's config is at `~/Library/Application Support/MyCoolApp/.object store/.shelf config`, then this would be `.shelf config`
+    ///
+    /// - Throws: A ``ShelfConfig/LoadError`` iff any issue occurs loading the config
+    static func config(at driveLocation: DriveLocation,
+                       storeName: String? = nil,
+                       configName: String? = nil)
+    async throws(ShelfConfig.LoadError) -> ShelfConfig? {
+        let driveLocation = URL(driveLocation)
+        
+        guard FileManager.default.fileExists(atPath: driveLocation.path(percentEncoded: false)) else {
+            return nil
+        }
+        
+        let objectStoreRootFolder = driveLocation.defaultObjectStoreDirectory
+        
+        guard FileManager.default.fileExists(atPath: objectStoreRootFolder.path(percentEncoded: false)) else {
+            return nil
+        }
+        
+        let configFile = objectStoreRootFolder.defaultConfigFile
+        
+        guard FileManager.default.fileExists(atPath: objectStoreRootFolder.path(percentEncoded: false)) else {
+            return nil
+        }
+        
+        let configData: Data
+        
+        do { configData = try Data(contentsOf: configFile) }
+        catch { throw .unreadable(cause: error) }
+        
+        do { return try ShelfConfig(jsonData: configData) }
+        catch { throw .incompatible(cause: error) }
     }
 }

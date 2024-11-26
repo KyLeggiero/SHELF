@@ -11,6 +11,7 @@
 import Foundation
 
 import SerializationTools
+import SimpleLogging
 
 
 
@@ -20,21 +21,116 @@ public struct Shelf {
     /// Configuration details for this SHELF store
     let config: ShelfConfig
     
+    /// Handles the actual (de)serialization of the database and its objects
     private var serializer: ShelfSerializer
+    
+    
+    /// Initializes or connects to a SHELF store.
+    ///
+    /// - Attention: This is `fileprivate` because it powers other initilizers. I shouldn't be used directly.
+    ///
+    /// - Parameters:
+    ///   - config:                  Configuration details for this SHELF store
+    ///
+    ///   - preferLoadingPastConfig: Whether SHELF should prefer loading any configuration it can from the found pre-existing object store.
+    ///                              If true, the only config that will be acknowledged is whatever is just enough to find the existing object store's config, and that existing config will be read in.
+    ///                              If false, the given config will take higher priority over the existing one.
+    ///                              If true and there is no pre-existing config, then the in-memory one will be used (obviously).
+    ///
+    ///   - serializer:              A SHELF serializer appropriate for this config
+    ///
+    /// - Throws: An ``InitError`` if initialization fails
+    fileprivate init(config: ShelfConfig, preferLoadingPastConfig: Bool, serializer: ShelfSerializer) async throws(InitError) {
+        if preferLoadingPastConfig {
+            do {
+                self.config = try await .init(loadingFrom: config.storageLocation) ?? config
+                self.serializer = await config.createNewSerializer()
+            }
+            catch {
+                log(error: error, "Failed to load existing config. Backing up to provided config")
+                self.config = config
+                self.serializer = serializer
+            }
+        }
+        else {
+            self.config = config
+            self.serializer = serializer
+        }
+    }
+}
+
+
+
+// MARK: - Initialization
+
+public extension Shelf {
+    
+    /// Initializes or connects to a SHELF store
+    ///
+    /// - Parameters:
+    ///   - config:                  Configuration details for this SHELF store
+    ///
+    ///   - preferLoadingPastConfig: _optional_ - Whether SHELF should prefer loading any configuration it can from the found pre-existing object store.
+    ///                              If true, the only config that will be acknowledged is whatever is just enough to find the existing object store's config, and that existing config will be read in.
+    ///                              If false, the given config will take higher priority over the existing one.
+    ///                              If true and there is no pre-existing config, then the in-memory one will be used (obviously).
+    ///                              Defaults to `true`
+    ///
+    /// - Throws: An ``InitError`` if initialization fails
+    init(config: ShelfConfig, preferLoadingPastConfig: Bool = true) async throws (InitError) {
+        try await self.init(
+            config: config,
+            preferLoadingPastConfig: preferLoadingPastConfig,
+            serializer: await config.createNewSerializer()
+        )
+    }
+    
+    
+    /// Initializes or connects to a SHELF store.
+    ///
+    /// If a store is found at the given location, this uses that one.
+    ///
+    /// If no store could be found at that location, a new one is created with a new configuration.
+    ///
+    /// - Parameter location: Where the SHELF store is located
+    ///
+    /// - Throws: An ``InitError`` if initialization fails
+    init(at location: ShelfConfig.StorageLocation) async throws (InitError) {
+        try await self.init(
+            config: .init(storageLocation: location),
+            preferLoadingPastConfig: true
+        )
+    }
+    
+    
+    /// Initializes or connects to a SHELF store
+    ///
+    /// - Parameter paradigm: The semantic paradigm describing the reason you want to create a new SHELF
+    ///
+    /// - Throws: An ``InitError`` if initialization fails
+    init(paradigm: ShelfConfig.NewConfigParadigm) async throws(InitError) {
+        try await self.init(
+            config: .init(paradigm: paradigm),
+            preferLoadingPastConfig: paradigm.preferLoadingPastConfig
+        )
+    }
+    
+    
+    /// Initializes or connects to a SHELF store
+    ///
+    /// This assumes a golden path: that this executable is a typical application, the SHELF store is where applications typically store their data, the SHELF database & config file have the default name, etc.
+    ///
+    /// - Throws: An ``InitError`` if initialization fails
+    init() async throws(InitError) {
+        try await self.init(at: .defaultOnDrive)
+    }
 }
 
 
 
 public extension Shelf {
-    
-    /// References a SHELF store at the given drive location
-    ///
-    /// - Parameter driveLocation: The location on the drive where this SHELF store is persisted
-    init(config: ShelfConfig) async {
-        self.init(
-            config: config,
-            serializer: await config.createNewSerializer()
-        )
+    enum InitError: Error {
+        //case couldNotLoadExistingConfig
     }
 }
 
@@ -76,6 +172,7 @@ public extension Shelf {
 // MARK: - API: Persisting
 
 public extension Shelf {
+    
     /// Attempts to save the given SHELF object to the store
     ///
     /// - Parameter object: The object to save
@@ -105,8 +202,14 @@ public extension Shelf {
 
 
 public extension Shelf {
+    /// Thrown when there was a failed attempt to delete the whole database
     enum WholeDatabaseDeleteError: Error {
+        
+        /// The dev attempted to delete the database, but failed to properly pass the whole-database delete token
         case badDeleteToken
+        
+        /// The dev properly passed the whole-database delete token, and SHELF tried to perform that deletion, but the deletion failed for some reason outside the control of SHELF
+        /// - Parameter cause: The reason the deletion failed (often a platform error)
         case couldNotPerformApprovedDeletion(cause: Error)
     }
 }
@@ -146,6 +249,7 @@ public extension Shelf {
 // MARK: - Nuking
 
 public extension Shelf {
+    
     /// 🛑 Deletes all the data in this SHELF object store database.
     ///
     /// This function returns a token for database deletion.

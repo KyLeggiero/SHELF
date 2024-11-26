@@ -66,7 +66,7 @@ internal extension URL {
     init(_ driveLocation: DriveLocation) {
         switch driveLocation {
         case .semantic(let semantic, let subpath):
-            self = Self(semantic).appending(path: subpath.trimmingPrefix(/[\\\/]/))
+            self = Self.init(semantic).appending(path: subpath.trimmingPrefix(/[\\\/]/))
             
         case .explicit(let path):
             self.init(filePath: path)

@@ -19,8 +19,8 @@ internal extension ShelfConfig {
     /// Since this returns a brand-new serializer, it should only be called rarely. Ideally, once when the application starts.
     ///
     /// - Note: Some serializers, like ``InMemoryShelfSerializer``, contain no data when first created
-    func createNewSerializer() async -> ShelfSerializer {
-        switch self.storageLocation {
+    func createNewSerializer() async -> any ShelfSerializer {
+        switch storageLocation {
         case .onlyInMemory:             InMemoryShelfSerializer()
         case .local(let driveLocation): LocalDriveShelfSerializer(location: driveLocation)
         }

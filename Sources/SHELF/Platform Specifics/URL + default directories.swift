@@ -37,11 +37,6 @@ internal extension URL {
             self = URL.defaultDirectories(for: .current).thisProgramDataDirectory
         }
     }
-    
-    
-    /// This is the name of the subdirectory where the object store is located
-    @inlinable
-    static var objectStoreDefaultDirectoryName: String { ".object store" }
 }
 
 

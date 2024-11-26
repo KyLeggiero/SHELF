@@ -23,6 +23,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/RougeWare/Swift-Safe-Pointer.git", from: "2.1.3"),
         .package(url: "https://github.com/RougeWare/Swift-SerializationTools.git", from: "1.1.1"),
+        .package(url: "https://github.com/RougeWare/Swift-Simple-Logging", from: "0.5.2"),
         .package(url: "https://github.com/RougeWare/Swift-String-Integer-Access.git", from: "2.1.0"),
         .package(url: "https://github.com/RougeWare/Swift-TODO.git", from: "1.1.0"),
         .package(url: "https://github.com/RougeWare/UuidTools.git", from: "0.2.1"),
@@ -34,6 +35,7 @@ let package = Package(
             dependencies: [
                 .product(name: "SafePointer", package: "Swift-Safe-Pointer"),
                 .product(name: "SerializationTools", package: "Swift-SerializationTools"),
+                .product(name: "SimpleLogging", package: "Swift-Simple-Logging"),
                 .product(name: "SafeStringIntegerAccess", package: "Swift-String-Integer-Access"),
                 .product(name: "TODO", package: "Swift-TODO"),
                 .product(name: "UuidTools", package: "UuidTools"),

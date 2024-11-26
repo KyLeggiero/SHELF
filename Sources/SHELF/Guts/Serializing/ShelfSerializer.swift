@@ -123,6 +123,8 @@ internal extension ShelfSerializer {
 
 // MARK: - D
 
+// MARK: Whole-database deletion
+
 internal extension ShelfSerializer {
     /// 🛑 Deletes all the data in this SHELF object store database.
     ///
